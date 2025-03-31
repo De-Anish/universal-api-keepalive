@@ -1,0 +1,47 @@
+/* Custom styles for the keep-alive service web interface */
+
+/* Stats cards */
+.stats-card {
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Improve table readability */
+.table-responsive {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Style for pre tags in modals */
+pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Custom styling for flash messages */
+.alert {
+    border-radius: 10px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Smooth transitions */
+.btn, .card {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stats-card {
+        margin-bottom: 1rem;
+    }
+}
