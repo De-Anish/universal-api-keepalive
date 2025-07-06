@@ -1,0 +1,61 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install email-validator flask flask-sqlalchemy gunicorn psycopg2-binary requests
+        
+    - name: Test application startup
+      run: |
+        python -c "import main; print('Application imports successfully')"
+        
+    - name: Run basic health check
+      run: |
+        python -c "
+        import requests
+        import subprocess
+        import time
+        import signal
+        import os
+        
+        # Start the app in background
+        proc = subprocess.Popen(['python', 'main.py'], 
+                               stdout=subprocess.DEVNULL, 
+                               stderr=subprocess.DEVNULL)
+        
+        # Wait for startup
+        time.sleep(3)
+        
+        try:
+            # Basic health check
+            response = requests.get('http://localhost:5000', timeout=5)
+            if response.status_code == 200:
+                print('✓ Health check passed')
+            else:
+                print(f'✗ Health check failed: {response.status_code}')
+                exit(1)
+        except Exception as e:
+            print(f'✗ Health check failed: {e}')
+            exit(1)
+        finally:
+            proc.terminate()
+            proc.wait()
+        "
