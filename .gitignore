@@ -83,6 +83,13 @@ Thumbs.db
 replit.nix
 .upm/
 .breakpoints
+.pythonlibs/
+
+# Virtual environments and package installations
+.venv/
+venv/
+env/
+.env
 
 # Temporary files
 *.tmp
