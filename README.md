@@ -40,6 +40,51 @@ The service can be configured via environment variables:
 - `PING_INTERVAL`: Time between pings in seconds (minimum: 60)
 - `LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR)
 
+### Custom Request Structure
+
+You can customize the ping request to match your API requirements by modifying the `config.py` file:
+
+```python
+# Example configurations for different APIs:
+
+# For JSON APIs:
+DEFAULT_CONFIG = {
+    "target_url": "https://your-api.com/endpoint",
+    "ping_interval": 180,
+    "request_method": "POST",
+    "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer your-token"
+    },
+    "payload": {
+        "ping": True,
+        "timestamp": "auto"
+    }
+}
+
+# For simple GET requests:
+SIMPLE_GET_CONFIG = {
+    "target_url": "https://your-api.com/health",
+    "request_method": "GET",
+    "headers": {"User-Agent": "KeepAlive-Service"}
+}
+
+# For form data APIs:
+FORM_DATA_CONFIG = {
+    "target_url": "https://your-api.com/ping",
+    "request_method": "POST",
+    "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+    "payload": "status=alive&source=keepalive"
+}
+```
+
+**Environment Variable Override:**
+Set `CUSTOM_PAYLOAD` to override the default request structure:
+```bash
+export CUSTOM_PAYLOAD='{"your": "custom", "data": "here"}'
+export CUSTOM_HEADERS='{"Authorization": "Bearer your-token"}'
+```
+
 ## Project Structure
 
 ```
