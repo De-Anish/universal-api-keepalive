@@ -66,12 +66,38 @@ class KeepAliveService:
         
         try:
             self.logger.info(f"Pinging server at {self.url}")
-            response = requests.post(
-                self.url, 
-                headers=self.headers, 
-                data=json.dumps(self.data),
-                timeout=30  # Add a timeout to prevent hanging
-            )
+            
+            # Get HTTP method (default to POST for backward compatibility)
+            method = getattr(self, 'method', 'POST').upper()
+            
+            # Prepare request data based on Content-Type and data format
+            request_kwargs = {
+                'url': self.url,
+                'headers': self.headers,
+                'timeout': 30
+            }
+            
+            # Handle data based on method and data type
+            if method != 'GET' and self.data is not None:
+                content_type = self.headers.get('Content-Type', 'application/json')
+                
+                if isinstance(self.data, str):
+                    # String data (form data or plain text)
+                    request_kwargs['data'] = self.data
+                elif isinstance(self.data, dict):
+                    # Dictionary data
+                    if 'application/json' in content_type:
+                        request_kwargs['data'] = json.dumps(self.data)
+                    elif 'application/x-www-form-urlencoded' in content_type:
+                        request_kwargs['data'] = self.data  # requests will handle form encoding
+                    else:
+                        request_kwargs['data'] = json.dumps(self.data)  # Default to JSON
+                else:
+                    # Other data types
+                    request_kwargs['data'] = str(self.data)
+            
+            # Make the request using the specified method
+            response = requests.request(method, **request_kwargs)
             
             result["success"] = 200 <= response.status_code < 300
             result["status_code"] = response.status_code

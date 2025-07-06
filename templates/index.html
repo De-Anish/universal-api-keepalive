@@ -70,17 +70,89 @@
             </div>
             <div class="card-body">
                 <form action="{{ url_for('update_config') }}" method="post">
+                    <!-- Basic Configuration -->
                     <div class="mb-3">
                         <label for="url" class="form-label">Target URL</label>
                         <input type="url" class="form-control" id="url" name="url" 
                                value="{{ config.url }}" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="interval" class="form-label">Ping Interval (seconds)</label>
-                        <input type="number" class="form-control" id="interval" name="interval" 
-                               value="{{ config.interval }}" min="60" required>
-                        <div class="form-text">Minimum interval is 60 seconds.</div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="method" class="form-label">HTTP Method</label>
+                            <select class="form-select" id="method" name="method">
+                                <option value="GET" {% if config.get('method', 'POST') == 'GET' %}selected{% endif %}>GET</option>
+                                <option value="POST" {% if config.get('method', 'POST') == 'POST' %}selected{% endif %}>POST</option>
+                                <option value="PUT" {% if config.get('method', 'POST') == 'PUT' %}selected{% endif %}>PUT</option>
+                                <option value="PATCH" {% if config.get('method', 'POST') == 'PATCH' %}selected{% endif %}>PATCH</option>
+                                <option value="DELETE" {% if config.get('method', 'POST') == 'DELETE' %}selected{% endif %}>DELETE</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="interval" class="form-label">Ping Interval (seconds)</label>
+                            <input type="number" class="form-control" id="interval" name="interval" 
+                                   value="{{ config.interval }}" min="60" required>
+                            <div class="form-text">Minimum interval is 60 seconds.</div>
+                        </div>
                     </div>
+
+                    <!-- Advanced Configuration (Collapsible) -->
+                    <div class="mb-3">
+                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" 
+                                data-bs-target="#advancedConfig" aria-expanded="false" aria-controls="advancedConfig">
+                            <i class="fas fa-cog me-2"></i>Advanced Request Configuration
+                        </button>
+                    </div>
+
+                    <div class="collapse" id="advancedConfig">
+                        <div class="card card-body mb-3">
+                            <!-- Headers Configuration -->
+                            <div class="mb-3">
+                                <label for="headers" class="form-label">Custom Headers (JSON)</label>
+                                <textarea class="form-control" id="headers" name="headers" rows="4" 
+                                          placeholder='{"Content-Type": "application/json", "Authorization": "Bearer token"}'>{{ config.get('headers', {}) | tojson }}</textarea>
+                                <div class="form-text">Enter headers as JSON object. Will merge with default headers.</div>
+                            </div>
+
+                            <!-- Payload Configuration -->
+                            <div class="mb-3">
+                                <label for="payload" class="form-label">Request Payload</label>
+                                <div class="mb-2">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="payload_type" id="payload_json" value="json" checked>
+                                        <label class="form-check-label" for="payload_json">JSON</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="payload_type" id="payload_form" value="form">
+                                        <label class="form-check-label" for="payload_form">Form Data</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="payload_type" id="payload_none" value="none">
+                                        <label class="form-check-label" for="payload_none">No Payload</label>
+                                    </div>
+                                </div>
+                                <textarea class="form-control" id="payload" name="payload" rows="6" 
+                                          placeholder='{"ping": true, "service": "keepalive"}'>{{ config.get('data') | tojson if config.get('data') else '' }}</textarea>
+                                <div class="form-text">
+                                    <strong>JSON:</strong> Use JSON object format<br>
+                                    <strong>Form Data:</strong> Use key=value&key2=value2 format<br>
+                                    <strong>No Payload:</strong> Leave empty for GET requests
+                                </div>
+                            </div>
+
+                            <!-- Quick Templates -->
+                            <div class="mb-3">
+                                <label class="form-label">Quick Templates</label>
+                                <div class="btn-group w-100" role="group">
+                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="loadTemplate('simple_get')">Simple GET</button>
+                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="loadTemplate('json_api')">JSON API</button>
+                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="loadTemplate('form_data')">Form Data</button>
+                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="loadTemplate('authenticated')">With Auth</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save me-2"></i>Save Configuration
                     </button>
@@ -222,5 +294,104 @@
     setTimeout(function() {
         location.reload();
     }, 60000);
+
+    // Configuration templates
+    const templates = {
+        simple_get: {
+            method: 'GET',
+            headers: '{"User-Agent": "KeepAlive-Service"}',
+            payload: '',
+            payload_type: 'none'
+        },
+        json_api: {
+            method: 'POST',
+            headers: '{"Content-Type": "application/json"}',
+            payload: '{"ping": true, "service": "keepalive", "timestamp": "auto"}',
+            payload_type: 'json'
+        },
+        form_data: {
+            method: 'POST',
+            headers: '{"Content-Type": "application/x-www-form-urlencoded"}',
+            payload: 'status=alive&source=keepalive&timestamp=auto',
+            payload_type: 'form'
+        },
+        authenticated: {
+            method: 'POST',
+            headers: '{"Content-Type": "application/json", "Authorization": "Bearer YOUR_TOKEN_HERE"}',
+            payload: '{"action": "ping", "client": "keepalive-service"}',
+            payload_type: 'json'
+        }
+    };
+
+    // Load template function
+    function loadTemplate(templateName) {
+        const template = templates[templateName];
+        if (!template) return;
+
+        // Set method
+        document.getElementById('method').value = template.method;
+        
+        // Set headers
+        document.getElementById('headers').value = template.headers;
+        
+        // Set payload
+        document.getElementById('payload').value = template.payload;
+        
+        // Set payload type radio button
+        document.querySelector(`input[name="payload_type"][value="${template.payload_type}"]`).checked = true;
+        
+        // Show success message
+        showToast(`Loaded ${templateName.replace('_', ' ')} template`, 'success');
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 3000);
+    }
+
+    // Payload type change handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const payloadTypeInputs = document.querySelectorAll('input[name="payload_type"]');
+        const payloadTextarea = document.getElementById('payload');
+        
+        payloadTypeInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                if (this.value === 'none') {
+                    payloadTextarea.value = '';
+                    payloadTextarea.placeholder = 'No payload for this request type';
+                    payloadTextarea.disabled = true;
+                } else {
+                    payloadTextarea.disabled = false;
+                    if (this.value === 'json') {
+                        payloadTextarea.placeholder = '{"ping": true, "service": "keepalive"}';
+                    } else if (this.value === 'form') {
+                        payloadTextarea.placeholder = 'status=alive&source=keepalive';
+                    }
+                }
+            });
+        });
+        
+        // Initialize payload state based on current selection
+        const selectedType = document.querySelector('input[name="payload_type"]:checked');
+        if (selectedType) {
+            selectedType.dispatchEvent(new Event('change'));
+        }
+    });
 </script>
 {% endblock %}

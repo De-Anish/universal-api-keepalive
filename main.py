@@ -85,6 +85,40 @@ def update_config():
         new_config['url'] = request.form.get('url', service_config['url'])
         new_config['interval'] = int(request.form.get('interval', service_config['interval']))
         
+        # Handle HTTP method
+        new_config['method'] = request.form.get('method', service_config.get('method', 'POST')).upper()
+        
+        # Handle custom headers
+        headers_json = request.form.get('headers', '{}')
+        try:
+            custom_headers = json.loads(headers_json) if headers_json.strip() else {}
+            # Merge with default headers
+            merged_headers = service_config.get('headers', {}).copy()
+            merged_headers.update(custom_headers)
+            new_config['headers'] = merged_headers
+        except json.JSONDecodeError:
+            flash('Invalid JSON in headers field. Using default headers.', 'warning')
+            new_config['headers'] = service_config.get('headers', {})
+        
+        # Handle payload based on type
+        payload_type = request.form.get('payload_type', 'json')
+        payload_content = request.form.get('payload', '')
+        
+        if payload_type == 'none' or not payload_content.strip():
+            new_config['data'] = None
+        elif payload_type == 'json':
+            try:
+                new_config['data'] = json.loads(payload_content) if payload_content.strip() else None
+            except json.JSONDecodeError:
+                flash('Invalid JSON in payload field. Using default payload.', 'warning')
+                new_config['data'] = service_config.get('data')
+        elif payload_type == 'form':
+            # Keep as string for form data
+            new_config['data'] = payload_content.strip() if payload_content.strip() else None
+        else:
+            # Default to existing data
+            new_config['data'] = service_config.get('data')
+        
         # Ensure interval is at least 60 seconds
         if new_config['interval'] < 60:
             new_config['interval'] = 60
