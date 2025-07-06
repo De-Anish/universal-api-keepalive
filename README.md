@@ -1,10 +1,14 @@
-# Resume API Keep-Alive Service
+# Universal API Keep-Alive Service
 
-A Flask-based web application that provides a keep-alive service for maintaining API uptime on hosting platforms like Render. The application continuously pings a target Resume API endpoint to prevent it from going to sleep due to inactivity.
+A Flask-based web application that provides a flexible keep-alive service for maintaining API uptime on hosting platforms like Render, Heroku, or any cloud service. Configure any API endpoint with custom request structures directly from the web dashboard.
 
 ## Features
 
 - **Web Dashboard**: Real-time monitoring interface with Bootstrap 5 dark theme
+- **Flexible Configuration**: Frontend interface to customize request structure without editing files
+- **Multiple HTTP Methods**: Support for GET, POST, PUT, PATCH, DELETE requests
+- **Custom Headers & Payloads**: JSON, form data, or no payload options
+- **Quick Templates**: One-click configuration for common API patterns
 - **Keep-Alive Service**: Automatic background pinging to maintain API uptime
 - **Manual Controls**: Start/stop service and trigger manual pings
 - **Comprehensive Logging**: File-based rotating logs with console output
