@@ -129,4 +129,4 @@ This application has been security reviewed and contains no exploitable vulnerab
 
 ## License
 
-MIT License - see LICENSE file for details
+ License - see LICENSE file for details
